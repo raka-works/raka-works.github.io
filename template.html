@@ -26,6 +26,9 @@ h2 { font-size:1.15rem; border-bottom:2px solid var(--line); padding-bottom:4px;
 .price s { color:var(--sub); font-weight:400; }
 .badge { display:inline-block; font-size:.75rem; color:#fff; background:var(--accent); padding:0 6px; border-radius:4px; margin-right:4px; }
 .badge.low { background:var(--low); }
+.tag { display:inline-block; font-size:.75rem; border:1px solid var(--line); color:var(--sub); padding:0 6px; border-radius:4px; margin-right:4px; }
+h3 { font-size:.95rem; color:var(--sub); margin:20px 0 8px; }
+.intro { margin:8px 0; }
 footer { font-size:.8rem; color:var(--sub); }
 </style>
 </head>
@@ -33,7 +36,8 @@ footer { font-size:.8rem; color:var(--sub); }
 <header>
   <span class="pr">PR</span>
   <h1>スノボ用品 値下がりチェック</h1>
-  <p class="meta">{{DATE}} 更新　値下がり {{COUNT}} 件　／　楽天市場の板・ビンディング・ブーツの価格を毎朝チェックし、前回より下がったものを載せています。</p>
+  <p class="intro">板やブーツの値段は、シーズン前とシーズン末にかなり動きます。でも楽天のお店を毎日見て回るのは面倒なので、毎朝自動で価格を集めて、前の日より下がったものを並べるページを作りました。スノボ歴5年くらいの会社員が、自分の買い替え用も兼ねて動かしています。</p>
+  <p class="meta">{{DATE}} 更新　／　{{MODELS}} モデルをチェック　／　値下がり {{COUNT}} 件<br>同じモデルはお店やサイズが違っても1つにまとめ、一番安いお店を出しています。下がったかどうかは「前回取得した価格」と比べています。</p>
 </header>
 <main>{{SECTIONS}}</main>
 <footer>

@@ -5,6 +5,7 @@
 """
 import json
 import os
+import re
 import sys
 import time
 import urllib.error
@@ -51,9 +52,21 @@ def search(params, config):
             raise
 
 
+def brand_pos(name, brand):
+    """ブランド名が単語として出てくる位置（「CAPITA」が「CAPITAL」に当たらないように）。無ければ -1。"""
+    m = re.search(rf"(?<![A-Z0-9]){re.escape(brand.upper())}(?![A-Z0-9])", name.upper())
+    return m.start() if m else -1
+
+
+def detect_brand(name, brands):
+    """商品名に一番先に出てくるブランドを、その商品のブランドとみなす。"""
+    found = [(brand_pos(name, b), b) for b in brands if brand_pos(name, b) >= 0]
+    return min(found)[1] if found else None
+
+
 def is_target(name, brand, price, category, config):
     upper = name.upper()
-    if brand.upper() not in upper:
+    if brand_pos(name, brand) < 0:
         return False
     if price < category["min_price"]:
         return False
@@ -78,7 +91,7 @@ def main():
                 entry = history.setdefault(item["itemCode"], {"prices": {}})
                 entry.update({
                     "name": name,
-                    "brand": brand,
+                    "brand": detect_brand(name, config["brands"]) or brand,
                     "category": cat_key,
                     "shop": item.get("shopName", ""),
                     "url": item.get("affiliateUrl") or item["itemUrl"],

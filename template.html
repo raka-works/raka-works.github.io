@@ -4,44 +4,182 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>スノボ用品 値下がりチェック</title>
-<meta name="description" content="スノーボードの板・ビンディング・ブーツの値下がりを毎朝自動でチェックしています。">
+<meta name="description" content="スノーボードの板・ビンディング・ブーツの値下がりを毎朝自動でチェック。ブランド・年式・モデル名で絞り込めます。">
 <style>
-:root { --bg:#f7f8fa; --card:#fff; --text:#1d2330; --sub:#667085; --accent:#d92d20; --low:#0b7a4b; --line:#e4e7ec; }
+:root { --bg:#f5f6f8; --card:#fff; --text:#1d2330; --sub:#667085; --accent:#d92d20; --low:#0b7a4b; --line:#e4e7ec; --chip:#eef1f5; --on:#1d2330; --onText:#fff; }
 @media (prefers-color-scheme: dark) {
-  :root { --bg:#12151b; --card:#1c2029; --text:#e8eaef; --sub:#98a2b3; --accent:#ff6b5e; --low:#3ccf8e; --line:#2c313c; }
+  :root { --bg:#12151b; --card:#1c2029; --text:#e8eaef; --sub:#98a2b3; --accent:#ff6b5e; --low:#3ccf8e; --line:#2c313c; --chip:#262b36; --on:#e8eaef; --onText:#12151b; }
 }
 * { box-sizing:border-box; }
 body { margin:0; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,"Hiragino Sans","Yu Gothic UI",sans-serif; line-height:1.5; }
-header, main, footer { max-width:960px; margin:0 auto; padding:16px; }
-h1 { font-size:1.4rem; margin:8px 0 4px; }
-h2 { font-size:1.15rem; border-bottom:2px solid var(--line); padding-bottom:4px; margin-top:32px; }
-.pr { display:inline-block; font-size:.75rem; border:1px solid var(--sub); color:var(--sub); padding:0 6px; border-radius:4px; }
-.meta, .note, .shop { color:var(--sub); font-size:.85rem; }
-.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; }
-.card { display:flex; gap:12px; padding:12px; background:var(--card); border:1px solid var(--line); border-radius:10px; color:inherit; text-decoration:none; }
-.card img { width:96px; height:96px; object-fit:contain; flex-shrink:0; background:#fff; border-radius:6px; }
-.card p { margin:0 0 4px; }
-.name { font-size:.85rem; }
-.price { font-weight:700; }
-.price s { color:var(--sub); font-weight:400; }
-.badge { display:inline-block; font-size:.75rem; color:#fff; background:var(--accent); padding:0 6px; border-radius:4px; margin-right:4px; }
+.wrap { max-width:1080px; margin:0 auto; padding:0 16px; }
+header { padding:16px 0 8px; }
+h1 { font-size:1.35rem; margin:4px 0; }
+.pr { display:inline-block; font-size:.7rem; border:1px solid var(--sub); color:var(--sub); padding:0 6px; border-radius:4px; }
+.meta { color:var(--sub); font-size:.85rem; margin:0; }
+.bar { position:sticky; top:0; z-index:5; background:var(--bg); padding:10px 0; border-bottom:1px solid var(--line); }
+.tabs { display:flex; gap:6px; overflow-x:auto; padding-bottom:8px; }
+.tabs button, .chip { border:1px solid var(--line); background:var(--chip); color:var(--text); border-radius:999px; padding:6px 14px; font-size:.9rem; white-space:nowrap; cursor:pointer; }
+.tabs button[aria-pressed="true"], .chip[aria-pressed="true"] { background:var(--on); color:var(--onText); border-color:var(--on); }
+.filters { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:8px; }
+select, input[type=search] { width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:8px; background:var(--card); color:var(--text); font-size:.9rem; }
+.toggle { display:flex; align-items:center; gap:6px; font-size:.9rem; }
+.count { color:var(--sub); font-size:.85rem; margin:12px 0 8px; }
+.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:12px; }
+.card { display:flex; flex-direction:column; background:var(--card); border:1px solid var(--line); border-radius:12px; overflow:hidden; color:inherit; text-decoration:none; }
+.card .img { aspect-ratio:4/3; background:#fff; display:flex; align-items:center; justify-content:center; }
+.card img { max-width:100%; max-height:100%; object-fit:contain; }
+.card .body { padding:10px 12px 12px; display:flex; flex-direction:column; gap:4px; flex:1; }
+.brand { font-size:.75rem; font-weight:700; letter-spacing:.04em; color:var(--sub); }
+.name { font-size:.85rem; margin:0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.price { font-size:1.15rem; font-weight:700; margin-top:auto; }
+.price s { font-size:.8rem; color:var(--sub); font-weight:400; margin-right:4px; }
+.tags { display:flex; flex-wrap:wrap; gap:4px; }
+.tag { font-size:.72rem; border:1px solid var(--line); color:var(--sub); padding:0 6px; border-radius:4px; }
+.badge { font-size:.72rem; color:#fff; background:var(--accent); padding:0 6px; border-radius:4px; }
 .badge.low { background:var(--low); }
-.tag { display:inline-block; font-size:.75rem; border:1px solid var(--line); color:var(--sub); padding:0 6px; border-radius:4px; margin-right:4px; }
-h3 { font-size:.95rem; color:var(--sub); margin:20px 0 8px; }
-.intro { margin:8px 0; }
-footer { font-size:.8rem; color:var(--sub); }
+.shop { font-size:.75rem; color:var(--sub); }
+.more { display:block; margin:16px auto; padding:10px 24px; border-radius:999px; border:1px solid var(--line); background:var(--card); color:var(--text); font-size:.95rem; cursor:pointer; }
+.empty { color:var(--sub); padding:32px 0; text-align:center; }
+@media (max-width:600px) {
+  .grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+  .card .body { padding:8px; }
+  .name { font-size:.78rem; }
+  .price { font-size:1rem; }
+  .bar { padding:8px 0; }
+  .tabs { padding-bottom:6px; }
+  .filters { grid-template-columns:1fr 1fr; gap:6px; }
+  select, input[type=search] { padding:6px 8px; font-size:.85rem; }
+}
+footer { font-size:.8rem; color:var(--sub); padding:24px 0 40px; }
+footer a { color:var(--sub); }
 </style>
 </head>
 <body>
-<header>
+<header class="wrap">
   <span class="pr">PR</span>
   <h1>スノボ用品 値下がりチェック</h1>
-  <p class="meta">{{DATE}} 更新　／　{{MODELS}} モデルをチェック　／　値下がり {{COUNT}} 件<br>同じモデルはお店やサイズが違っても1つにまとめ、一番安いお店を出しています。下がったかどうかは「前回取得した価格」と比べています。</p>
+  <p class="meta">{{DATE}} 更新　／　{{MODELS}} モデル　／　今日の値下がり {{COUNT}} 件</p>
 </header>
-<main>{{SECTIONS}}</main>
-<footer>
-  <p>このページには楽天アフィリエイトの広告リンクが含まれています。価格は取得時点のもので、最新の価格・在庫はリンク先でご確認ください。</p>
+
+<div class="bar">
+  <div class="wrap">
+    <div class="tabs" id="tabs"></div>
+    <div class="filters">
+      <select id="brand" aria-label="ブランド"></select>
+      <select id="season" aria-label="年式"></select>
+      <select id="sort" aria-label="並び順">
+        <option value="rate">値下がり率が大きい順</option>
+        <option value="low">価格が安い順</option>
+        <option value="high">価格が高い順</option>
+      </select>
+      <input type="search" id="q" placeholder="モデル名で検索（例：CUSTOM）">
+    </div>
+    <label class="toggle" style="margin-top:8px"><input type="checkbox" id="dropOnly"> 値下がりしたものだけ</label>
+  </div>
+</div>
+
+<main class="wrap">
+  <p class="count" id="count"></p>
+  <div class="grid" id="grid"></div>
+  <button class="more" id="more" hidden>もっと見る</button>
+</main>
+
+<footer class="wrap">
+  <p>楽天市場の価格を毎朝自動で取得し、前回取得した価格より下がったものに印を付けています。同じモデルはお店やサイズが違っても1つにまとめ、一番安いお店を表示しています。価格・在庫は取得時点のもので、最新の情報はリンク先でご確認ください。</p>
+  <p>このページには楽天アフィリエイトの広告リンクが含まれています。</p>
   <p><a href="https://developers.rakuten.com/" target="_blank" rel="noopener">Supported by Rakuten Developers</a></p>
 </footer>
+
+<script id="data" type="application/json">{{DATA}}</script>
+<script>
+const D = JSON.parse(document.getElementById("data").textContent);
+const PAGE = 40;
+const state = { cat: "all", brand: "", season: "", sort: "rate", q: "", dropOnly: false, shown: PAGE };
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const yen = (n) => n.toLocaleString("ja-JP") + "円";
+
+function inCat(it) { return state.cat === "all" || it.c === state.cat; }
+
+function buildTabs() {
+  const cats = [["all", "すべて"], ...Object.entries(D.categories)];
+  $("tabs").innerHTML = cats.map(([k, v]) => {
+    const n = k === "all" ? D.items.length : D.items.filter((i) => i.c === k).length;
+    return `<button data-cat="${k}" aria-pressed="${state.cat === k}">${esc(v)} ${n}</button>`;
+  }).join("");
+}
+
+function buildBrands() {
+  const counts = {};
+  D.items.filter(inCat).forEach((i) => { counts[i.b] = (counts[i.b] || 0) + 1; });
+  const brands = Object.keys(counts).sort((a, b) => a.localeCompare(b));
+  if (state.brand && !counts[state.brand]) state.brand = "";
+  $("brand").innerHTML = `<option value="">すべてのブランド</option>` +
+    brands.map((b) => `<option value="${esc(b)}"${b === state.brand ? " selected" : ""}>${esc(b)}（${counts[b]}）</option>`).join("");
+}
+
+function buildSeasons() {
+  const seasons = [...new Set(D.items.map((i) => i.s).filter(Boolean))].sort().reverse();
+  $("season").innerHTML = `<option value="">すべての年式</option>` +
+    `<option value="now">今季モデル（${D.season}）</option><option value="old">型落ち</option>` +
+    seasons.map((s) => `<option value="${s}">${s} モデル</option>`).join("");
+}
+
+function filtered() {
+  const q = state.q.trim().toUpperCase();
+  let list = D.items.filter((i) =>
+    inCat(i) &&
+    (!state.brand || i.b === state.brand) &&
+    (!state.season || (state.season === "now" ? i.s === D.season : state.season === "old" ? (i.s && i.s < D.season) : i.s === state.season)) &&
+    (!state.dropOnly || i.r) &&
+    (!q || (i.b + " " + i.n).toUpperCase().includes(q)));
+  const by = {
+    rate: (a, b) => (b.r || 0) - (a.r || 0) || a.p - b.p,
+    low: (a, b) => a.p - b.p,
+    high: (a, b) => b.p - a.p,
+  }[state.sort];
+  return list.sort(by);
+}
+
+function card(i) {
+  const tags = [];
+  if (i.s) tags.push(`<span class="tag">${i.s === D.season ? "今季 " : ""}${esc(i.s)}</span>`);
+  if (i.r) tags.push(`<span class="badge">-${Math.round(i.r * 100)}%（${yen(i.o - i.p)}）</span>`);
+  if (i.l) tags.push(`<span class="badge low">記録上の最安</span>`);
+  const price = i.r ? `<s>${yen(i.o)}</s>${yen(i.p)}` : yen(i.p);
+  const shop = esc(i.h) + (i.k > 1 ? `（ほか${i.k - 1}店）` : "");
+  return `<a class="card" href="${esc(i.u)}" rel="sponsored noopener" target="_blank">
+    <div class="img">${i.i ? `<img src="${esc(i.i)}" alt="" loading="lazy">` : ""}</div>
+    <div class="body"><span class="brand">${esc(i.b)}</span><p class="name">${esc(i.n)}</p>
+    <div class="tags">${tags.join("")}</div><div class="price">${price}</div><span class="shop">${shop}</span></div></a>`;
+}
+
+function render() {
+  const list = filtered();
+  const drops = list.filter((i) => i.r).length;
+  $("count").textContent = `${list.length} モデル（うち値下がり ${drops}）`;
+  $("grid").innerHTML = list.length ? list.slice(0, state.shown).map(card).join("")
+    : `<p class="empty">条件に合うモデルがありません。</p>`;
+  $("more").hidden = list.length <= state.shown;
+}
+
+function update(patch) { Object.assign(state, patch, { shown: PAGE }); render(); }
+
+$("tabs").addEventListener("click", (e) => {
+  const b = e.target.closest("button"); if (!b) return;
+  state.cat = b.dataset.cat; buildTabs(); buildBrands(); update({});
+});
+$("brand").addEventListener("change", (e) => update({ brand: e.target.value }));
+$("season").addEventListener("change", (e) => update({ season: e.target.value }));
+$("sort").addEventListener("change", (e) => update({ sort: e.target.value }));
+$("q").addEventListener("input", (e) => update({ q: e.target.value }));
+$("dropOnly").addEventListener("change", (e) => update({ dropOnly: e.target.checked }));
+$("more").addEventListener("click", () => { state.shown += PAGE; render(); });
+
+// 値下がりが無い日は、安い順を最初に見せる
+if (!D.items.some((i) => i.r)) { state.sort = "low"; $("sort").value = "low"; }
+buildTabs(); buildBrands(); buildSeasons(); render();
+</script>
 </body>
 </html>

@@ -2,7 +2,6 @@
 
 同じモデルはお店違い・サイズ違いでも1枚にまとめ、一番安いお店だけを出す。
 """
-import html
 import json
 import re
 from datetime import datetime, timedelta, timezone
@@ -55,7 +54,7 @@ def model_key(e):
     return (e["category"], e["brand"], season(e["name"]), tuple(seen[:2]))
 
 
-def group_today(history, today, brands):
+def group_today(history, today, brands, exclude_words=()):
     """今日価格がある商品を、モデルごとに最安のお店1つへまとめる。"""
     groups = {}
     for code, e in history.items():
@@ -63,7 +62,7 @@ def group_today(history, today, brands):
             continue
         # 取得済みのデータにはブランドの取り違えがあるので、作るたびに名前から判定し直す
         brand = detect_brand(e["name"], brands)
-        if not brand:
+        if not brand or any(w.upper() in e["name"].upper() for w in exclude_words):
             continue
         e = {**e, "brand": brand}
         item = {**e, "code": code, "price": e["prices"][today], "season": season(e["name"])}
@@ -89,28 +88,22 @@ def drop_of(item, today, rule):
     return None
 
 
-def card(e):
-    price = f"{e['price']:,}円"
-    badges = ""
-    if e.get("season"):
-        badges += f'<span class="tag">{e["season"]}</span>'
-    d = e.get("drop")
-    if d:
-        price = f'<s>{d["prev"]:,}円</s> → {price}'
-        badges += f'<span class="badge">-{d["rate"]:.0%}（{d["diff"]:,}円）</span>'
-        if d["lowest"]:
-            badges += '<span class="badge low">記録上の最安</span>'
-    shop = html.escape(e["shop"])
-    if e["shops"] > 1:
-        shop += f'（ほか{e["shops"] - 1}店）'
-    img = f'<img src="{html.escape(e["image"])}" alt="" loading="lazy">' if e["image"] else ""
-    return (f'<a class="card" href="{html.escape(e["url"])}" rel="sponsored noopener" target="_blank">'
-            f'{img}<div><p class="name">{html.escape(e["name"][:80])}</p>'
-            f'<p class="price">{price}</p><p>{badges}</p><p class="shop">{shop}</p></div></a>')
+def clean_name(name):
+    """表示用の商品名。宣伝の【】や［］を外して短くする。"""
+    name = re.sub(r"[【\[［].*?[】\]］]", " ", name)
+    name = re.sub(r"\s+", " ", name).strip()
+    return name[:70]
 
 
-def grid(items):
-    return '<div class="grid">' + "".join(card(i) for i in items) + "</div>"
+def to_row(m, drop):
+    """ページに埋め込む1モデル分のデータ。キーは短くしてページを軽くする。"""
+    row = {
+        "c": m["category"], "b": m["brand"], "s": m["season"], "n": clean_name(m["name"]),
+        "p": m["price"], "h": m["shop"], "k": m["shops"], "u": m["url"], "i": m["image"],
+    }
+    if drop:
+        row.update({"o": drop["prev"], "r": round(drop["rate"], 3), "l": int(drop["lowest"])})
+    return row
 
 
 def main():
@@ -118,46 +111,37 @@ def main():
     history = json.loads((ROOT / "data" / "history.json").read_text(encoding="utf-8"))
     today = max(d for e in history.values() for d in e["prices"])
     now_season = current_season(today)
-    models = group_today(history, today, config["brands"])
+    models = group_today(history, today, config["brands"], config["exclude_words"])
 
-    # 値下がりは、まとめる前の各お店の商品で判定し、モデルごとに一番下がったものを出す
-    drops = []
+    rows = []
+    drops = 0
     for m in models:
+        # 値下がりは、まとめる前の各お店の商品で判定し、モデルごとに一番下がったものを出す
         best = None
         for item in m["members"]:
             d = drop_of(item, today, config["drop"])
             if d and (best is None or d["rate"] > best[1]["rate"]):
                 best = (item, d)
         if best:
-            drops.append({**best[0], "shops": m["shops"], "drop": best[1]})
-    drops.sort(key=lambda x: x["drop"]["rate"], reverse=True)
+            drops += 1
+            rows.append(to_row({**best[0], "shops": m["shops"]}, best[1]))
+        else:
+            rows.append(to_row(m, None))
 
-    sections = ['<section><h2>今日の値下がり</h2>']
-    if drops:
-        sections.append(grid(drops[:30]))
-    else:
-        sections.append('<p class="note">今日は前回から下がった商品はありませんでした。</p>')
-    sections.append("</section>")
-
-    for key, cat in config["categories"].items():
-        cat_models = [m for m in models if m["category"] == key]
-        latest = sorted((m for m in cat_models if m["season"] == now_season), key=lambda x: x["price"])
-        older = sorted((m for m in cat_models if m["season"] and m["season"] < now_season),
-                       key=lambda x: x["price"])
-        sections.append(f'<section><h2>{cat["label"]}</h2>')
-        sections.append(f'<h3>今季モデル（{now_season}）の安い順</h3>')
-        sections.append(grid(latest[:8]) if latest else '<p class="note">まだ見つかっていません。</p>')
-        sections.append('<h3>型落ちの安い順</h3>')
-        sections.append(grid(older[:8]) if older else '<p class="note">まだ見つかっていません。</p>')
-        sections.append("</section>")
-
+    data = {
+        "date": today,
+        "season": now_season,
+        "categories": {k: v["label"] for k, v in config["categories"].items()},
+        "items": rows,
+    }
+    payload = json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
     page = (ROOT / "template.html").read_text(encoding="utf-8")
     page = (page.replace("{{DATE}}", today)
-                .replace("{{COUNT}}", str(len(drops)))
+                .replace("{{COUNT}}", str(drops))
                 .replace("{{MODELS}}", f"{len(models):,}")
-                .replace("{{SECTIONS}}", "".join(sections)))
+                .replace("{{DATA}}", payload))
     (ROOT / "index.html").write_text(page, encoding="utf-8")
-    print(f"{today}: {len(models)} モデル、値下がり {len(drops)} 件")
+    print(f"{today}: {len(models)} モデル、値下がり {drops} 件")
 
 
 if __name__ == "__main__":

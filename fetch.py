@@ -19,17 +19,22 @@ ENDPOINT = "https://openapi.rakuten.co.jp/ichibams/api/IchibaItem/Search/2026070
 JST = timezone(timedelta(hours=9))
 
 
+def env(name):
+    # Secrets に貼るとき末尾に改行が入りやすいので取り除く
+    return os.environ.get(name, "").strip()
+
+
 def search(params, config):
     query = urllib.parse.urlencode({
-        "applicationId": os.environ["RAKUTEN_APP_ID"],
-        "affiliateId": os.environ.get("RAKUTEN_AFFILIATE_ID", ""),
+        "applicationId": env("RAKUTEN_APP_ID"),
+        "affiliateId": env("RAKUTEN_AFFILIATE_ID"),
         "format": "json",
         "hits": 30,
         "availability": 1,
         **params,
     })
     req = urllib.request.Request(f"{ENDPOINT}?{query}", headers={
-        "accessKey": os.environ["RAKUTEN_ACCESS_KEY"],
+        "accessKey": env("RAKUTEN_ACCESS_KEY"),
         # 2026年の刷新で、登録したサイトからのアクセスか確かめられるため付けておく
         "Referer": config["site_url"],
         "Origin": config["site_url"].rstrip("/"),

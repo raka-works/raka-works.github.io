@@ -1,0 +1,22 @@
+{
+  "site_url": "https://raka-works.github.io/",
+  "brands": [
+    "BURTON", "SALOMON", "CAPITA", "K2", "YONEX", "OGASAKA", "GRAY", "MOSS",
+    "011Artistic", "DEATH LABEL", "NITRO", "JONES", "LIB TECH", "GNU", "RIDE",
+    "ROSSIGNOL", "NOVEMBER", "HEAD", "FLUX", "UNION"
+  ],
+  "categories": {
+    "board":   {"label": "板",           "keyword": "スノーボード 板",         "min_price": 20000},
+    "binding": {"label": "ビンディング", "keyword": "スノーボード ビンディング", "min_price": 10000},
+    "boots":   {"label": "ブーツ",       "keyword": "スノーボード ブーツ",     "min_price": 10000}
+  },
+  "exclude_words": [
+    "中古", "USED", "ユーズド", "アウトレット品B", "訳あり", "レンタル",
+    "ステッカー", "ケース", "カバー", "ワックス", "リーシュ", "デッキパッド",
+    "キッズ", "ジュニア", "子供", "パーツ", "ストラップのみ"
+  ],
+  "drop": {
+    "min_rate": 0.05,
+    "min_yen": 1000
+  }
+}

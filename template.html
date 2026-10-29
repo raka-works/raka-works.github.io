@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>スノボ用品 値下がりチェック</title>
+<meta name="description" content="スノーボードの板・ビンディング・ブーツの値下がりを毎朝自動でチェックしています。">
+<style>
+:root { --bg:#f7f8fa; --card:#fff; --text:#1d2330; --sub:#667085; --accent:#d92d20; --low:#0b7a4b; --line:#e4e7ec; }
+@media (prefers-color-scheme: dark) {
+  :root { --bg:#12151b; --card:#1c2029; --text:#e8eaef; --sub:#98a2b3; --accent:#ff6b5e; --low:#3ccf8e; --line:#2c313c; }
+}
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,"Hiragino Sans","Yu Gothic UI",sans-serif; line-height:1.5; }
+header, main, footer { max-width:960px; margin:0 auto; padding:16px; }
+h1 { font-size:1.4rem; margin:8px 0 4px; }
+h2 { font-size:1.15rem; border-bottom:2px solid var(--line); padding-bottom:4px; margin-top:32px; }
+.pr { display:inline-block; font-size:.75rem; border:1px solid var(--sub); color:var(--sub); padding:0 6px; border-radius:4px; }
+.meta, .note, .shop { color:var(--sub); font-size:.85rem; }
+.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; }
+.card { display:flex; gap:12px; padding:12px; background:var(--card); border:1px solid var(--line); border-radius:10px; color:inherit; text-decoration:none; }
+.card img { width:96px; height:96px; object-fit:contain; flex-shrink:0; background:#fff; border-radius:6px; }
+.card p { margin:0 0 4px; }
+.name { font-size:.85rem; }
+.price { font-weight:700; }
+.price s { color:var(--sub); font-weight:400; }
+.badge { display:inline-block; font-size:.75rem; color:#fff; background:var(--accent); padding:0 6px; border-radius:4px; margin-right:4px; }
+.badge.low { background:var(--low); }
+footer { font-size:.8rem; color:var(--sub); }
+</style>
+</head>
+<body>
+<header>
+  <span class="pr">PR</span>
+  <h1>スノボ用品 値下がりチェック</h1>
+  <p class="meta">{{DATE}} 更新　値下がり {{COUNT}} 件　／　楽天市場の板・ビンディング・ブーツの価格を毎朝チェックし、前回より下がったものを載せています。</p>
+</header>
+<main>{{SECTIONS}}</main>
+<footer>
+  <p>このページには楽天アフィリエイトの広告リンクが含まれています。価格は取得時点のもので、最新の価格・在庫はリンク先でご確認ください。</p>
+  <p><a href="https://developers.rakuten.com/" target="_blank" rel="noopener">Supported by Rakuten Developers</a></p>
+</footer>
+</body>
+</html>

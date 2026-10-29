@@ -73,6 +73,7 @@ footer a { color:var(--sub); }
         <option value="low">価格が安い順</option>
         <option value="high">価格が高い順</option>
       </select>
+      <select id="size" aria-label="サイズ" hidden></select>
       <input type="search" id="q" placeholder="モデル名で検索（例：CUSTOM）">
     </div>
     <label class="toggle" style="margin-top:8px"><input type="checkbox" id="dropOnly"> 値下がりしたものだけ</label>
@@ -95,7 +96,7 @@ footer a { color:var(--sub); }
 <script>
 const D = JSON.parse(document.getElementById("data").textContent);
 const PAGE = 40;
-const state = { cat: "all", brand: "", season: "", sort: "rate", q: "", dropOnly: false, shown: PAGE };
+const state = { cat: "all", brand: "", season: "", size: "", sort: "rate", q: "", dropOnly: false, shown: PAGE };
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const yen = (n) => n.toLocaleString("ja-JP") + "円";
@@ -126,12 +127,26 @@ function buildSeasons() {
     seasons.map((s) => `<option value="${s}">${s} モデル</option>`).join("");
 }
 
+// サイズは板（長さ）とブーツ（cm）のときだけ出す。商品名にサイズが書かれているものだけが対象
+function buildSizes() {
+  const sel = $("size");
+  if (state.cat !== "board" && state.cat !== "boots") { sel.hidden = true; state.size = ""; return; }
+  const all = new Set();
+  D.items.filter(inCat).forEach((i) => (i.z || []).forEach((s) => all.add(s)));
+  const list = [...all].sort((a, b) => a - b);
+  const unit = state.cat === "boots" ? "cm" : "";
+  sel.innerHTML = `<option value="">すべてのサイズ</option>` +
+    list.map((s) => `<option value="${s}"${String(s) === state.size ? " selected" : ""}>${s}${unit}</option>`).join("");
+  sel.hidden = false;
+}
+
 function filtered() {
   const q = state.q.trim().toUpperCase();
   let list = D.items.filter((i) =>
     inCat(i) &&
     (!state.brand || i.b === state.brand) &&
     (!state.season || (state.season === "now" ? i.s === D.season : state.season === "old" ? (i.s && i.s < D.season) : i.s === state.season)) &&
+    (!state.size || (i.z || []).map(String).includes(state.size)) &&
     (!state.dropOnly || i.r) &&
     (!q || (i.b + " " + i.n).toUpperCase().includes(q)));
   const by = {
@@ -149,7 +164,7 @@ function card(i) {
   if (i.l) tags.push(`<span class="badge low">記録上の最安</span>`);
   const price = i.r ? `<s>${yen(i.o)}</s>${yen(i.p)}` : yen(i.p);
   const shop = esc(i.h) + (i.k > 1 ? `（ほか${i.k - 1}店）` : "");
-  return `<a class="card" href="${esc(i.u)}" rel="sponsored noopener" target="_blank">
+  return `<a class="card" href="${esc(i.u)}">
     <div class="img">${i.i ? `<img src="${esc(i.i)}" alt="" loading="lazy">` : ""}</div>
     <div class="body"><span class="brand">${esc(i.b)}</span><p class="name">${esc(i.n)}</p>
     <div class="tags">${tags.join("")}</div><div class="price">${price}</div><span class="shop">${shop}</span></div></a>`;
@@ -168,8 +183,9 @@ function update(patch) { Object.assign(state, patch, { shown: PAGE }); render();
 
 $("tabs").addEventListener("click", (e) => {
   const b = e.target.closest("button"); if (!b) return;
-  state.cat = b.dataset.cat; buildTabs(); buildBrands(); update({});
+  state.cat = b.dataset.cat; buildTabs(); buildBrands(); buildSizes(); update({});
 });
+$("size").addEventListener("change", (e) => update({ size: e.target.value }));
 $("brand").addEventListener("change", (e) => update({ brand: e.target.value }));
 $("season").addEventListener("change", (e) => update({ season: e.target.value }));
 $("sort").addEventListener("change", (e) => update({ sort: e.target.value }));

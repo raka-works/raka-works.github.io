@@ -96,6 +96,9 @@ def main():
                     "shop": item.get("shopName", ""),
                     "url": item.get("affiliateUrl") or item["itemUrl"],
                     "image": (item.get("mediumImageUrls") or [{}])[0].get("imageUrl", ""),
+                    "point": int(item.get("pointRate") or 1),
+                    # 0 なら送料込み、1 なら送料別
+                    "postage": int(item.get("postageFlag") or 0),
                     "last_seen": today,
                 })
                 entry["prices"][today] = price

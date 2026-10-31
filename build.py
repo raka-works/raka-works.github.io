@@ -202,7 +202,7 @@ def model_page(m, cat_label, today, site_url):
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{html.escape(title)} の最安値と価格推移｜スノボ用品 値下がりチェック</title>
+<title>{html.escape(title)} の最安値と価格推移｜DEEP DAYS</title>
 <meta name="description" content="{html.escape(desc)}">
 <link rel="canonical" href="{site_url}m/{m['slug']}.html">
 <style>
